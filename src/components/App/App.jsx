@@ -57,6 +57,7 @@ export class App extends Component {
   };
 
   handleModalOpen = image => {
+    console.log(image);
     this.setState({
       modalOpen: true,
       modalImg: image,
@@ -77,15 +78,19 @@ export class App extends Component {
 
         {status === STATUS.loading && <Loader />}
 
-        <ImageGallery
-          images={posts}
-          openModal={this.handleModalOpen}
-          modalStatus={modalOpen}
-        />
+        {status === STATUS.success && (
+          <ImageGallery
+            images={posts}
+            openModal={this.handleModalOpen}
+            modalStatus={modalOpen}
+          />
+        )}
 
-        {modalOpen && <Modal image={modalImg} closeModal={this.handleModalClose} />}
+        {modalOpen && (
+          <Modal image={modalImg} closeModal={this.handleModalClose} />
+        )}
 
-        {posts.length > 0 && <Button onClick={this.handleCount} />}
+        {status === STATUS.success && <Button onClick={this.handleCount} />}
       </AppStyle>
     );
   }
