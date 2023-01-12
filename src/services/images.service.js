@@ -14,5 +14,5 @@ export const getImages = async (params = {}) => {
       ...params,
     },
   });
-  return result.data.hits;
+  return result.data;
 };

@@ -31,7 +31,14 @@ export class App extends Component {
   fetchData = async ({ pageNumber, search }) => {
     this.setState({ status: STATUS.loading });
     try {
-      const data = await getImages({ page: pageNumber, q: search });
+      const { hits } = await getImages({ page: pageNumber, q: search });
+      const data = hits.map(({ id, tags, webformatURL, largeImageURL }) => ({
+        id: id,
+        largeImageURL: largeImageURL,
+        webformatURL: webformatURL,
+        tags: tags,
+      }));
+
       this.setState(prevState => ({
         posts: [...prevState.posts, ...data],
         status: STATUS.success,
