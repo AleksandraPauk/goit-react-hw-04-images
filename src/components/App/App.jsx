@@ -85,13 +85,11 @@ export class App extends Component {
 
         {status === STATUS.loading && <Loader />}
 
-        {status === STATUS.success && (
           <ImageGallery
             images={posts}
             openModal={this.handleModalOpen}
             modalStatus={modalOpen}
           />
-        )}
 
         {modalOpen && (
           <Modal image={modalImg} closeModal={this.handleModalClose} />
