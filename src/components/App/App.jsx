@@ -1,4 +1,5 @@
-import { Component } from 'react';
+import { useState } from 'react';
+import { useEffect } from 'react';
 
 import { ImageGallery } from '../ImageGallery/ImageGallery';
 import { SearchBar } from '../Searchbar/Searchbar';
@@ -11,25 +12,16 @@ import { getImages } from '../../services/images.service';
 
 import { AppStyle } from './App.styled';
 
-export class App extends Component {
-  state = {
-    search: '',
-    posts: [],
-    pageNumber: 1,
-    modalOpen: false,
-    modalImg: null,
-    status: STATUS.idle,
-  };
+export const App = () => {
+  const [search, setSearch] = useState('');
+  const [posts, setPosts] = useState([]);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalImg, setModalImg] = useState(null);
+  const [status, setStatus] = useState(STATUS.idle);
 
-  componentDidUpdate(_, prevState) {
-    const { pageNumber, search } = this.state;
-    if (search !== prevState.search || pageNumber !== prevState.pageNumber) {
-      this.fetchData({ pageNumber, search });
-    }
-  }
-
-  fetchData = async ({ pageNumber, search }) => {
-    this.setState({ status: STATUS.loading });
+  const fetchData = async ({ pageNumber, search }) => {
+    setStatus(STATUS.loading);
     try {
       const { hits } = await getImages({ page: pageNumber, q: search });
       const data = hits.map(({ id, tags, webformatURL, largeImageURL }) => ({
@@ -39,64 +31,58 @@ export class App extends Component {
         tags: tags,
       }));
 
-      this.setState(prevState => ({
-        posts: [...prevState.posts, ...data],
-        status: STATUS.success,
-      }));
+      setPosts(prev => [...prev, ...data]);
+      setStatus(STATUS.success);
     } catch (error) {
       console.log(error);
-      this.setState({ status: STATUS.error });
+      setStatus(STATUS.error);
     }
   };
 
-  handleInputValue = text => {
-    this.setState({
-      search: text,
-      pageNumber: 1,
-      posts: [],
-    });
+  useEffect(() => {
+    if (search === "") {
+      return
+    }
+    fetchData({ pageNumber, search });
+  }, [pageNumber, search]);
+
+  const handleInputValue = text => {
+    setSearch(text)
+    setPageNumber(1)
+    setPosts([])
   };
 
-  handleCount = () => {
-    this.setState(prevState => ({
-      pageNumber: prevState.pageNumber + 1,
-    }));
+  const handleCount = () => {
+    setPageNumber(prev=> prev + 1)
   };
 
-  handleModalOpen = image => {
-    console.log(image);
-    this.setState({
-      modalOpen: true,
-      modalImg: image,
-    });
+  const handleModalOpen = image => {
+    setModalOpen(true)
+    setModalImg(image)
   };
 
-  handleModalClose = () => {
-    this.setState({
-      modalOpen: false,
-    });
+  const handleModalClose = () => {
+    setModalOpen(false)
   };
 
-  render() {
-    const { posts, modalOpen, modalImg, status } = this.state;
-    return (
-      <AppStyle>
-        <SearchBar onSubmit={this.handleInputValue} />
+  return (
+    <AppStyle>
+      <SearchBar onSubmit={handleInputValue} />
 
-        {status === STATUS.loading && <Loader />}
+      <ImageGallery
+        images={posts}
+        openModal={handleModalOpen}
+        modalStatus={modalOpen}
+      />
+      
+      {status === STATUS.loading && <Loader />}
+      
+      {modalOpen && (
+        <Modal image={modalImg} closeModal={handleModalClose} />
+      )}
 
-          <ImageGallery
-            images={posts}
-            openModal={this.handleModalOpen}
-            modalStatus={modalOpen}
-          />
+      {status === STATUS.success && <Button onClick={handleCount} />}
+    </AppStyle>
+  );
+};
 
-        {modalOpen && (
-          <Modal image={modalImg} closeModal={this.handleModalClose} />
-        )}
-
-        {status === STATUS.success && <Button onClick={this.handleCount} />}
-      </AppStyle>
-    );
-  }
-}
